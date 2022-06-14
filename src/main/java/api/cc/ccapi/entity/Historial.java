@@ -1,6 +1,7 @@
 package api.cc.ccapi.entity;
 
 import javax.persistence.*;
+import javax.validation.constraints.Null;
 import java.math.BigDecimal;
 
 @Entity

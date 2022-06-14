@@ -83,6 +83,7 @@ public class TarjetaController {
         historial.setId(transaccion.getIdcompra());
         historial.setCantidad(cantidad);
         historial.setOrigen(repositorio.findByNumero(origen.getNumero()).get().getId());
+        historial.setEstado("pagado");
         historialRepository.save(historial);
         responseMap.put("estado","exito");
 
