@@ -4,8 +4,10 @@ import java.math.BigDecimal;
 
 public class Transaccion {
 
+
+    private Long idcompra;
+
     private Tarjetascredito origen;
-    private String destino;
     private BigDecimal cantidad;
 
     public Tarjetascredito getOrigen() {
@@ -16,19 +18,19 @@ public class Transaccion {
         this.origen = origen;
     }
 
-    public String getDestino() {
-        return destino;
-    }
-
-    public void setDestino(String destino) {
-        this.destino = destino;
-    }
-
     public BigDecimal getCantidad() {
         return cantidad;
     }
 
     public void setCantidad(BigDecimal cantidad) {
         this.cantidad = cantidad;
+    }
+
+    public Long getIdcompra() {
+        return idcompra;
+    }
+
+    public void setIdcompra(Long idcompra) {
+        this.idcompra = idcompra;
     }
 }

@@ -48,16 +48,13 @@ public class TarjetaController {
         return ResponseEntity.ok(responseMap);
     }
 
-    @PostMapping("/tarjeta/transacción")
-    public ResponseEntity<HashMap<String,Object>> realizarTransaccion(
+    @PostMapping("/tarjeta/compra")
+    public ResponseEntity<HashMap<String,Object>> realizarCompra(
             @RequestBody Transaccion transaccion
     ){
         HashMap<String,Object> responseMap = new HashMap<>();
         Tarjetascredito origen = transaccion.getOrigen();
-        String destino = transaccion.getDestino();
         BigDecimal cantidad = transaccion.getCantidad();
-        int verificarOrigen = repositorio.verificarTarjeta(origen.getNumero(), origen.getFechaexpiracion(),origen.getCvv());
-        Optional<Tarjetascredito> tarjetaDestinoO = repositorio.findByNumero(destino);
         if (cantidad.compareTo(BigDecimal.ZERO)<0) {
             responseMap.put("estado","error");
             responseMap.put("msg","La cantidad a abonar no puede ser negativa");
@@ -68,15 +65,10 @@ public class TarjetaController {
             responseMap.put("msg","La cantidad a abonar no puede ser menor que S/10.00");
             return new ResponseEntity<>(responseMap,HttpStatus.BAD_REQUEST);
         }
-        if(origen.getNumero().equals(destino)){
+        int verificarOrigen = repositorio.verificarTarjeta(origen.getNumero(), origen.getFechaexpiracion(),origen.getCvv());
+        if(verificarOrigen == 0){
             responseMap.put("estado","error");
-            responseMap.put("msg","No es posible abonar a la misma cuenta");
-            return new ResponseEntity<>(responseMap,HttpStatus.BAD_REQUEST);
-        }
-
-        if(verificarOrigen == 0 || tarjetaDestinoO.isEmpty()){
-            responseMap.put("estado","error");
-            responseMap.put("msg","Los datos de las cuentas son erroneos");
+            responseMap.put("msg","La tarjeta de credito no es válida");
             return new ResponseEntity<>(responseMap,HttpStatus.BAD_REQUEST);
         }
 
@@ -88,14 +80,47 @@ public class TarjetaController {
         }
 
         Historial historial = new Historial();
+        historial.setId(transaccion.getIdcompra());
         historial.setCantidad(cantidad);
         historial.setOrigen(repositorio.findByNumero(origen.getNumero()).get().getId());
-        historial.setDestino(tarjetaDestinoO.get().getId());
         historialRepository.save(historial);
         responseMap.put("estado","exito");
 
         return  new ResponseEntity<>(responseMap,HttpStatus.OK);
     }
+
+    @GetMapping("/tarjeta/cancelar/{id}")
+    public ResponseEntity<HashMap<String,Object>> cancelarCompra(
+            @PathVariable("id") String idStr
+    ){
+        Long id = 0L;
+        HashMap<String,Object> responseMap = new HashMap<>();
+        try{
+            id= (long) Integer.parseInt(idStr);
+        }catch (Exception e){
+            responseMap.put("estado","error");
+            responseMap.put("msg","El id de la compra tiene que ser un valor numérico");
+            return  new ResponseEntity<>(responseMap,HttpStatus.BAD_REQUEST);
+        }
+        Optional<Historial> oHistorial = historialRepository.findById(id);
+        if(oHistorial.isEmpty()){
+            responseMap.put("estado","error");
+            responseMap.put("msg","No se ha encontrado la compra a cancelar");
+            return  new ResponseEntity<>(responseMap,HttpStatus.BAD_REQUEST);
+        }
+        if(oHistorial.get().getEstado().equals("cancelado")){
+            responseMap.put("estado","error");
+            responseMap.put("msg","La compra indicada ya ha sido cancelada");
+            return  new ResponseEntity<>(responseMap,HttpStatus.BAD_REQUEST);
+        }
+        Historial historial = oHistorial.get();
+        historial.setEstado("cancelado");
+        historialRepository.save(historial);
+        responseMap.put("estado","exito");
+        return  new ResponseEntity<>(responseMap,HttpStatus.OK);
+    }
+
+
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<HashMap<String,Object>> gestionExcepcion(HttpServletRequest request){

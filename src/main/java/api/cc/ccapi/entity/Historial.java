@@ -7,18 +7,26 @@ import java.math.BigDecimal;
 @Table(name = "historial")
 public class Historial {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
     @Column(name = "origen")
     private Long origen;
 
-    @Column(name = "destino", nullable = false)
-    private Long destino;
-
     @Column(name = "cantidad", nullable = false, precision = 12, scale = 2)
     private BigDecimal cantidad;
+
+    @Lob
+    @Column(name = "estado", nullable = false)
+    private String estado;
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
 
     public Long getId() {
         return id;
@@ -34,14 +42,6 @@ public class Historial {
 
     public void setOrigen(Long origen) {
         this.origen = origen;
-    }
-
-    public Long getDestino() {
-        return destino;
-    }
-
-    public void setDestino(Long destino) {
-        this.destino = destino;
     }
 
     public BigDecimal getCantidad() {
